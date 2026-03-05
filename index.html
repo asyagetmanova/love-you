@@ -1,1 +1,185 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="theme-color" content="#ffffff" />
+  <link rel="manifest" href="./manifest.json" />
+  <link rel="icon" href="./icon.png" />
 
+  <title>For You 💌</title>
+
+  <style>
+    html, body { height: 100%; margin: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", system-ui, sans-serif;
+      background: #fff;
+      color: #111;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .card {
+      width: min(520px, 92vw);
+      padding: 22px;
+      border: 1px solid rgba(0,0,0,0.08);
+      border-radius: 18px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.06);
+    }
+    .title { font-size: 14px; letter-spacing: 0.3px; opacity: 0.7; }
+    .big { font-size: 22px; line-height: 1.25; margin: 10px 0 16px; }
+    .phrase {
+      font-size: 20px;
+      line-height: 1.35;
+      padding: 16px;
+      border-radius: 14px;
+      background: rgba(0,0,0,0.03);
+      user-select: none;
+      white-space: pre-wrap;
+    }
+    .row { display: flex; gap: 10px; margin-top: 14px; flex-wrap: wrap; }
+    button {
+      appearance: none;
+      border: 1px solid rgba(0,0,0,0.12);
+      background: #fff;
+      padding: 10px 12px;
+      border-radius: 12px;
+      font-size: 14px;
+      cursor: pointer;
+    }
+    button.primary {
+      border-color: rgba(0,0,0,0.08);
+      background: #111;
+      color: #fff;
+    }
+    .muted { margin-top: 10px; font-size: 12px; opacity: 0.65; }
+    .list {
+      margin-top: 14px;
+      display: none;
+      max-height: 44vh;
+      overflow: auto;
+      border: 1px solid rgba(0,0,0,0.08);
+      border-radius: 14px;
+      padding: 10px;
+    }
+    .item {
+      padding: 10px;
+      border-radius: 10px;
+    }
+    .item:hover { background: rgba(0,0,0,0.03); }
+    .item small { opacity: 0.6; }
+  </style>
+
+  <!-- OneSignal Web Push SDK -->
+  <script src="https://cdn.onesignal.com/sdks/OneSignalSDK.js" async=""></script>
+</head>
+<body>
+  <div class="card">
+    <div class="title">💌 A message for you</div>
+    <div class="big" id="subtitle">Today’s phrase</div>
+
+    <div class="phrase" id="phrase">Loading…</div>
+
+    <div class="row">
+      <button class="primary" id="btnNext">Show another</button>
+      <button id="btnToggleList">Browse all</button>
+      <button id="btnEnablePush">Enable notifications</button>
+    </div>
+
+    <div class="muted" id="hint">
+      Tip: on iPhone, install this to Home Screen to receive push notifications (iOS 16.4+).
+    </div>
+
+    <div class="list" id="list"></div>
+  </div>
+
+  <script src="./phrases.js"></script>
+  <script>
+    // ====== SETTINGS YOU CAN EDIT ======
+    const START_DATE = "2026-03-04"; // поменяй при желании
+    const TITLE_TODAY = "Today’s phrase";
+    // ==================================
+
+    const phrases = (window.PHRASES || []).filter(Boolean);
+    if (!phrases.length) {
+      document.getElementById("phrase").innerText = "Add phrases in phrases.js";
+    }
+
+    function dayIndex() {
+      const start = new Date(START_DATE + "T00:00:00");
+      const now = new Date();
+      const diff = now.getTime() - start.getTime();
+      return Math.max(0, Math.floor(diff / (1000 * 60 * 60 * 24)));
+    }
+
+    function phraseOfDayIndex() {
+      return phrases.length ? (dayIndex() % phrases.length) : 0;
+    }
+
+    let current = phraseOfDayIndex();
+
+    function setPhrase(i) {
+      current = i;
+      const text = phrases[current] || "";
+      document.getElementById("subtitle").innerText = TITLE_TODAY;
+      document.getElementById("phrase").innerText = text ? `“${text}”` : "—";
+    }
+
+    function nextPhrase() {
+      if (!phrases.length) return;
+      setPhrase((current + 1) % phrases.length);
+    }
+
+    function renderList() {
+      const el = document.getElementById("list");
+      const today = phraseOfDayIndex();
+      el.innerHTML = phrases.map((p, i) => {
+        const label = i === today ? "Today" : `#${i + 1}`;
+        return `<div class="item" data-i="${i}">
+          <small>${label}</small><div>${p}</div>
+        </div>`;
+      }).join("");
+      el.querySelectorAll(".item").forEach(node => {
+        node.addEventListener("click", () => setPhrase(Number(node.dataset.i)));
+      });
+    }
+
+    // Register Service Worker for offline/PWA
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("./service-worker.js");
+    }
+
+    // UI handlers
+    document.getElementById("btnNext").addEventListener("click", nextPhrase);
+
+    const listEl = document.getElementById("list");
+    document.getElementById("btnToggleList").addEventListener("click", () => {
+      const open = listEl.style.display === "block";
+      listEl.style.display = open ? "none" : "block";
+    });
+
+    // Init phrase + list
+    setPhrase(phraseOfDayIndex());
+    renderList();
+
+    // ===== OneSignal init (insert your App ID) =====
+    window.OneSignal = window.OneSignal || [];
+    OneSignal.push(function () {
+      OneSignal.init({
+        appId: "PUT_YOUR_ONESIGNAL_APP_ID_HERE"
+      });
+    });
+
+    // Request push permission
+    document.getElementById("btnEnablePush").addEventListener("click", async () => {
+      try {
+        OneSignal.push(function () {
+          OneSignal.showSlidedownPrompt(); // shows permission prompt
+        });
+      } catch (e) {
+        alert("Push setup error. Make sure you opened this from the installed Home Screen app (iOS 16.4+).");
+      }
+    });
+  </script>
+</body>
+</html>
