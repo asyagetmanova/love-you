@@ -26,8 +26,16 @@
       border-radius: 18px;
       box-shadow: 0 10px 30px rgba(0,0,0,0.06);
     }
-    .title { font-size: 14px; letter-spacing: 0.3px; opacity: 0.7; }
-    .big { font-size: 22px; line-height: 1.25; margin: 10px 0 16px; }
+    
+    .title {
+      font-size: 16px;
+      font-weight: 700;
+      text-align: center;
+      letter-spacing: 0.2px;
+      opacity: 1;
+      margin-bottom: 14px;
+    }
+
     .phrase {
       font-size: 20px;
       line-height: 1.35;
@@ -75,8 +83,7 @@
 </head>
 <body>
   <div class="card">
-    <div class="title">💌 A message for you</div>
-    <div class="big" id="subtitle">Today’s phrase</div>
+    <div class="title">💌 Asya has a message for you</div>
 
     <div class="phrase" id="phrase">Loading…</div>
 
@@ -97,7 +104,6 @@
   <script>
     // ====== SETTINGS YOU CAN EDIT ======
     const START_DATE = "2026-03-04"; // поменяй при желании
-    const TITLE_TODAY = "Today’s phrase";
     // ==================================
 
     const phrases = (window.PHRASES || []).filter(Boolean);
@@ -121,8 +127,7 @@
     function setPhrase(i) {
       current = i;
       const text = phrases[current] || "";
-      document.getElementById("subtitle").innerText = TITLE_TODAY;
-      document.getElementById("phrase").innerText = text ? `“${text}”` : "—";
+      document.getElementById("phrase").innerText = text ? `${text}` : "—";
     }
 
     function nextPhrase() {
