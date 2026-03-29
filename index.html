@@ -35,23 +35,24 @@
     }
 
     .title {
-      font-size: 18px;
+      font-size: 30px;
       font-weight: 700;
       text-align: center;
-      margin-bottom: 20px;
+      line-height: 1.2;
+      margin-bottom: 24px;
     }
 
     .phrase {
-      font-size: 32px;
-      line-height: 1.28;
-      padding: 28px 24px;
+      font-size: 18px;
+      line-height: 1.45;
+      padding: 24px 20px;
       border-radius: 24px;
       background: rgba(0,0,0,0.035);
       text-align: center;
       white-space: pre-wrap;
       overflow-wrap: anywhere;
-      min-height: 140px;
-      max-height: 48vh;
+      min-height: 120px;
+      max-height: 44vh;
       overflow: auto;
       display: flex;
       align-items: center;
@@ -87,12 +88,6 @@
       color: #fff;
     }
 
-    .muted {
-      margin-top: 16px;
-      font-size: 14px;
-      opacity: 0.65;
-    }
-
     .list {
       margin-top: 18px;
       display: none;
@@ -123,7 +118,6 @@
 
     @media (max-width: 700px) {
       body {
-        align-items: flex-start;
         padding: 14px;
       }
 
@@ -134,14 +128,14 @@
       }
 
       .title {
-        font-size: 16px;
-        margin-bottom: 16px;
+        font-size: 22px;
+        margin-bottom: 18px;
       }
 
       .phrase {
-        font-size: 24px;
-        min-height: 120px;
-        padding: 20px 18px;
+        font-size: 16px;
+        min-height: 110px;
+        padding: 18px 16px;
         border-radius: 18px;
       }
 
@@ -152,16 +146,6 @@
       }
     }
   </style>
-
-  <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
-  <script>
-    window.OneSignalDeferred = window.OneSignalDeferred || [];
-    OneSignalDeferred.push(async function(OneSignal) {
-      await OneSignal.init({
-        appId: "84403257-41cf-4e74-b464-8c86181cad2c"
-      });
-    });
-  </script>
 </head>
 <body>
   <div class="card">
@@ -174,11 +158,6 @@
     <div class="row">
       <button class="primary" id="btnNext">Show another</button>
       <button id="btnToggleList">Browse all</button>
-      <button id="btnEnablePush">Enable notifications</button>
-    </div>
-
-    <div class="muted">
-      tip: on iphone, install this to home screen to receive push notifications
     </div>
 
     <div class="list" id="list"></div>
@@ -297,18 +276,6 @@
     document.getElementById("btnToggleList")?.addEventListener("click", () => {
       const isOpen = listEl.style.display === "block";
       listEl.style.display = isOpen ? "none" : "block";
-    });
-
-    document.getElementById("btnEnablePush")?.addEventListener("click", async () => {
-      try {
-        window.OneSignalDeferred = window.OneSignalDeferred || [];
-        OneSignalDeferred.push(async function(OneSignal) {
-          await OneSignal.Notifications.requestPermission();
-        });
-      } catch (e) {
-        alert("не удалось запросить разрешение на уведомления");
-        console.error(e);
-      }
     });
 
     loadPhrases().catch((e) => {
